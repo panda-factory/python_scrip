@@ -100,8 +100,9 @@ def client_sender(buffer):
 
             client.send(buffer)
 
-    except:
+    except Exception as e :
         print "[*] Exception! Exiting."
+        print e
         client.close()
 
 def server_loop():
@@ -114,9 +115,11 @@ def server_loop():
     server.bind((target, port))
 
     server.listen(5)
+    print "[*] Listening on %s: %d" % (target, port)
 
     while True:
         client_socket, addr = server.accept()
+        print "[*] Client connected from %s: %d" % (addr[0], int(addr[1]))
 
         client_thread = threading.Thread(target = client_handler, args = (client_socket, ))
         client_thread.start()
@@ -166,7 +169,11 @@ def client_handler(client_socket):
             client_socket.send("<BHP:#> ")
             cmd_buffer = ""
             while "\n" not in cmd_buffer:
-                cmd_buffer += client_socket.recv(1024)
+                try:
+                    cmd_buffer += client_socket.recv(1024)
+                except:
+                    print "xxxxxxxxx"
+                    threading.Thread.exit()
 
                 response = run_command(cmd_buffer)
                 client_socket.send(response)
