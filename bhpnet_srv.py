@@ -56,20 +56,19 @@ def run_command(cmd_buf):
     return output
 
 def client_handler(cli_sk):
-    while True:
-        cli_sk.send("<BHP:#> ")
-        cmd_buf = ""
-        while "\n" not in cmd_buf:
-            try:
+    try:
+        while True:
+            cli_sk.send("<BHP:#> ")
+            cmd_buf = ""
+            while "\n" not in cmd_buf:
                 cmd_buf += cli_sk.recv(1024)
                 if not len(cmd_buf):
                     break
-            except:
-                print "[!] Exception!"
-                threading.Thread.exit()
-
+ 
             response = run_command(cmd_buf)
             cli_sk.send(response)
+    except Exception, e:
+        print "[!] Threading exit. %s" % e
 
 main()
 
