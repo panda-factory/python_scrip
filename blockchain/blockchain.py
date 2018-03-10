@@ -12,11 +12,10 @@ from flask import Flask, jsonify, request
 
 class Blockchain:
     def __init__(self):
-        self.current_transactions = []
-        self.chain = []
-        self.nodes = set()
-
-        self.new_block(previous_hash='1', proof=100)
+        self.current_transactions = [] #记录当前的交易，即还未被放入区块链的记录
+        self.chain = [] #区块链表
+        self.nodes = set() #用于记录网络中的节点
+        self.new_block(previous_hash='1', proof=100)    #创世块
 
     def register_node(self, address: str) -> None:
         """
@@ -30,25 +29,26 @@ class Blockchain:
 
     def valid_chain(self, chain: List[Dict[str, Any]]) -> bool:
         """
-        Determine if a given blockchain is valid
+        用于验证一条给定的区块链是否合法
 
-        :param chain: A blockchain
-        :return: True if valid, False if not
+        @param chain: 区块链
+        @return True: 成功
+        @return False: 失败
         """
-
         last_block = chain[0]
         current_index = 1
 
+        #遍历下标为1到末尾的所有区块
         while current_index < len(chain):
             block = chain[current_index]
             print(f'{last_block}')
             print(f'{block}')
             print("\n-----------\n")
-            # Check that the hash of the block is correct
+            # 验证哈系:当前块记录的[前向块哈系值]是否与前向块哈系值的计算结果相同
             if block['previous_hash'] != self.hash(last_block):
                 return False
 
-            # Check that the Proof of Work is correct
+            # 验证工作量:hash(last_block['proof'], block['proof'])的前4位是否位0.
             if not self.valid_proof(last_block['proof'], block['proof']):
                 return False
 
@@ -59,13 +59,13 @@ class Blockchain:
 
     def resolve_conflicts(self) -> bool:
         """
-        共识算法解决冲突
-        使用网络中最长的链.
+        共识算法解决冲突,使用网络中最长的链.
 
-        :return:  如果链被取代返回 True, 否则为False
+        @return True: 链被取代
+        @return False: 否
         """
 
-        neighbours = self.nodes
+        neighbours = self.nodes #网络中的节点
         new_chain = None
 
         # We're only looking for chains longer than ours
@@ -95,11 +95,12 @@ class Blockchain:
         """
         生成新块
 
-        :param proof: The proof given by the Proof of Work algorithm
-        :param previous_hash: Hash of previous Block
-        :return: New Block
+        @param proof: The proof given by the Proof of Work algorithm
+        @param previous_hash: Hash of previous Block
+        @return New Block
         """
 
+        # 区块的元素
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
@@ -118,10 +119,10 @@ class Blockchain:
         """
         生成新交易信息，信息将加入到下一个待挖的区块中
 
-        :param sender: Address of the Sender
-        :param recipient: Address of the Recipient
-        :param amount: Amount
-        :return: The index of the Block that will hold this transaction
+        @param sender: 发送端地址
+        @param recipient: Address of the Recipient
+        @param amount: Amount
+        @return: The index of the Block that will hold this transaction
         """
         self.current_transactions.append({
             'sender': sender,
@@ -253,8 +254,8 @@ def register_nodes():
         'message': 'New nodes have been added',
         'total_nodes': list(blockchain.nodes),
     }
-    return jsonify(response), 201
 
+    return jsonify(response), 201
 
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
